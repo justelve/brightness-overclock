@@ -84,6 +84,8 @@ Then grant permission in System Settings and relaunch the app if needed.
 
 ### Battery rules
 
+The Battery section shows the current power source, battery percentage when available, and Low Power Mode status.
+
 Use the **Boost on battery** menu to choose:
 
 - Allow boost on battery. This is the default, preserving the original behavior except when Low Power Mode is active.

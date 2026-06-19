@@ -89,6 +89,26 @@ final class BatteryBoostPolicyTests: XCTestCase {
         XCTAssertEqual(settings.minimumBatteryPercentage, 100)
     }
 
+    func testBatteryStatusMenuDescriptionShowsPowerAndLowPowerMode() {
+        XCTAssertEqual(
+            BatteryStatus(powerSource: .battery, batteryPresent: true, percentage: 42).menuDescription,
+            "Battery: 42%"
+        )
+        XCTAssertEqual(
+            BatteryStatus(
+                powerSource: .battery,
+                batteryPresent: true,
+                percentage: 42,
+                lowPowerModeEnabled: true
+            ).menuDescription,
+            "Battery: 42% · Low Power Mode"
+        )
+        XCTAssertEqual(
+            BatteryStatus(powerSource: .ac, batteryPresent: true, percentage: 90).menuDescription,
+            "Power: AC · Battery: 90%"
+        )
+    }
+
     func testControllerUsesNewPolicyWhenSettingsChange() {
         let suiteName = "BatteryBoostControllerTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
@@ -149,5 +169,30 @@ final class BatteryBoostPolicyTests: XCTestCase {
 
         XCTAssertEqual(state.boostLevel, 1.4, accuracy: 1e-9)
         XCTAssertTrue(state.isBoostAllowed)
+    }
+
+    func testControllerPublishesCurrentBatteryStatusForMenuDisplay() {
+        let suiteName = "BatteryBoostStatusDisplayTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        let settings = BatteryBoostSettings(defaults: defaults)
+        let state = BoostState(defaults: defaults)
+        let controller = BatteryBoostController(
+            state: state,
+            settings: settings,
+            statusProvider: {
+                BatteryStatus(
+                    powerSource: .battery,
+                    batteryPresent: true,
+                    percentage: 42,
+                    lowPowerModeEnabled: true
+                )
+            }
+        )
+
+        controller.start()
+        defer { controller.stop() }
+
+        XCTAssertEqual(settings.currentStatus.menuDescription, "Battery: 42% · Low Power Mode")
     }
 }

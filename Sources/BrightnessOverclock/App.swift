@@ -125,7 +125,7 @@ struct BatterySettingsView: View {
     @ObservedObject var settings: BatteryBoostSettings
 
     var body: some View {
-        Text("Battery")
+        Text(settings.currentStatus.menuDescription)
         Picker("Boost on battery", selection: $settings.policy) {
             ForEach(BatteryBoostPolicy.allCases) { policy in
                 Text(policy.displayName).tag(policy)

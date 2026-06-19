@@ -16,6 +16,12 @@ public final class BatteryBoostSettings: ObservableObject {
     }
 
     @Published public private(set) var minimumBatteryPercentage: Int
+    @Published public fileprivate(set) var currentStatus = BatteryStatus(
+        powerSource: .unknown,
+        batteryPresent: false,
+        percentage: nil,
+        lowPowerModeEnabled: ProcessInfo.processInfo.isLowPowerModeEnabled
+    )
 
     private let defaults: UserDefaults
 
@@ -167,16 +173,21 @@ public final class BatteryBoostController {
     }
 
     private func refresh(policy: BatteryBoostPolicy, thresholdPercentage: Int) {
+        let status = statusProvider()
         let decision = BatteryBoostAuthorizer.decision(
             policy: policy,
             thresholdPercentage: thresholdPercentage,
-            status: statusProvider()
+            status: status
         )
 
         if Thread.isMainThread {
+            settings.currentStatus = status
             state.setBoostDecision(decision)
         } else {
-            DispatchQueue.main.async { [state] in state.setBoostDecision(decision) }
+            DispatchQueue.main.async { [settings, state] in
+                settings.currentStatus = status
+                state.setBoostDecision(decision)
+            }
         }
     }
 

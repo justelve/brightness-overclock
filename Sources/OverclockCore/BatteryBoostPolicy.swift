@@ -46,6 +46,27 @@ public struct BatteryStatus: Equatable {
     public var isOnBattery: Bool {
         batteryPresent && powerSource == .battery
     }
+
+    public var menuDescription: String {
+        var parts: [String]
+        if isOnBattery {
+            parts = [percentage.map { "Battery: \($0)%" } ?? "Battery: Unknown"]
+        } else {
+            switch powerSource {
+            case .ac:
+                parts = ["Power: AC"]
+            case .unknown:
+                parts = ["Power: Unknown"]
+            case .battery:
+                parts = ["Battery"]
+            }
+            if batteryPresent, let percentage {
+                parts.append("Battery: \(percentage)%")
+            }
+        }
+        if lowPowerModeEnabled { parts.append("Low Power Mode") }
+        return parts.joined(separator: " · ")
+    }
 }
 
 public struct BatteryBoostDecision: Equatable {
