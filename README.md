@@ -15,6 +15,7 @@ _Note: this project is vibe-coded._
 - Menu bar toggle for brightness overclocking.
 - Brightness-key support past native maximum brightness.
 - 8 boost steps through the XDR range.
+- Manual boost-level picker for users who do not enable brightness-key control.
 - Remembers your last boost level.
 - Configurable battery rules for allowing or disabling boost on battery power.
 - Launch-at-login support.
@@ -53,6 +54,10 @@ Overclock brightness
 ```
 
 > First use goes to the maximum detected boost level. After that, toggling on restores your last boost level.
+
+### Manual boost level
+
+Use the **Overclock level** menu to choose **Off** or any of the 8 boost steps directly. Choosing a step turns overclocking on at that level, so brightness-key permission is optional if you prefer menu control.
 
 ### Brightness keys
 

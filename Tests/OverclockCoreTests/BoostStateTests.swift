@@ -129,4 +129,26 @@ final class BoostStateTests: XCTestCase {
 
         XCTAssertEqual(state.boostLevel, 1.0, accuracy: 1e-9)
     }
+
+    func testManualBoostStepTurnsOnToChosenStep() {
+        let state = BoostState(defaults: defaults)
+        state.maxFactor = 1.6
+
+        state.setBoostStep(4)
+
+        XCTAssertEqual(state.currentBoostStep, 4)
+        XCTAssertEqual(state.boostLevel, BoostMath.level(forStep: 4, maxFactor: 1.6), accuracy: 1e-9)
+        XCTAssertTrue(state.isBoosted)
+    }
+
+    func testManualBoostStepIsBlockedByBatteryPolicy() {
+        let state = BoostState(defaults: defaults)
+        state.maxFactor = 1.6
+        state.setBoostDecision(.blocked("Battery too low"))
+
+        state.setBoostStep(4)
+
+        XCTAssertEqual(state.boostLevel, 1.0, accuracy: 1e-9)
+        XCTAssertEqual(state.currentBoostStep, 0)
+    }
 }

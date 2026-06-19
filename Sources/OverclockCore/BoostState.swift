@@ -34,6 +34,8 @@ public final class BoostState: ObservableObject {
 
     public var isBoosted: Bool { boostLevel > 1.0 }
     public var isBoostAllowed: Bool { boostBlockReason == nil }
+    public var currentBoostStep: Int { BoostMath.step(forLevel: boostLevel, maxFactor: maxFactor) }
+    public var boostStepCount: Int { BoostMath.stepCount }
 
     private let defaults: UserDefaults
     private var restoreBoostWhenAllowed = false
@@ -72,6 +74,15 @@ public final class BoostState: ObservableObject {
     /// Menu toggle OFF: kill switch. rememberedLevel was already captured by didSet.
     public func toggleOff() {
         boostLevel = 1.0
+    }
+
+    public func setBoostStep(_ step: Int) {
+        guard isBoostAllowed else { return }
+        boostLevel = BoostMath.level(forStep: step, maxFactor: maxFactor)
+    }
+
+    public func approximateNits(forBoostStep step: Int) -> Int {
+        BoostMath.approximateNits(level: BoostMath.level(forStep: step, maxFactor: maxFactor))
     }
 
     public func stepUp() {

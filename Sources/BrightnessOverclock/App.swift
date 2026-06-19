@@ -80,6 +80,7 @@ struct MenuView: View {
             set: { $0 ? state.toggleOn() : state.toggleOff() }
         ))
         .disabled(!state.isBoostAllowed)
+        BoostLevelPicker(state: state)
         Text(state.isBoosted
              ? "≈ \(BoostMath.approximateNits(level: state.boostLevel)) nits"
              : "Normal (≤ \(Int(BoostMath.sdrReferenceNits)) nits)")
@@ -98,6 +99,25 @@ struct MenuView: View {
         LaunchAtLoginToggle()
         Divider()
         Button("Quit") { NSApp.terminate(nil) }
+    }
+}
+
+struct BoostLevelPicker: View {
+    @ObservedObject var state: BoostState
+
+    var body: some View {
+        Picker("Overclock level", selection: Binding(
+            get: { state.currentBoostStep },
+            set: { step in
+                step == 0 ? state.toggleOff() : state.setBoostStep(step)
+            }
+        )) {
+            Text("Off").tag(0)
+            ForEach(1...state.boostStepCount, id: \.self) { step in
+                Text("Step \(step) (≈ \(state.approximateNits(forBoostStep: step)) nits)").tag(step)
+            }
+        }
+        .disabled(!state.isBoostAllowed)
     }
 }
 

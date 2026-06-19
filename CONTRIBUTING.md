@@ -21,6 +21,7 @@ Brightness-key support is handled separately:
 - The native backlight level is read via the private DisplayServices framework (`DisplayServicesGetBrightness`).
 - Brightness Up is intercepted only once native brightness is effectively maxed.
 - Brightness Down walks down the boost range before passing control back to macOS.
+- The menu uses the same `BoostState` step API as brightness keys, so users can choose boost steps without granting Accessibility permission.
 
 Battery policy is also handled separately:
 
@@ -53,7 +54,7 @@ The app intentionally targets the built-in XDR display only. External displays a
 
 ### Project layout
 
-- `Sources/BrightnessOverclock/` contains the SwiftUI menu bar app, launch-at-login UI, and battery settings menu.
+- `Sources/BrightnessOverclock/` contains the SwiftUI menu bar app, manual boost-level picker, launch-at-login UI, and battery settings menu.
 - `Sources/OverclockCore/` contains display boosting, brightness-key interception, battery policy, and pure boost state/math.
 - `Tests/OverclockCoreTests/` covers the pure logic, battery policy, and the `BoostEngine` lifecycle through test seams.
 - `Resources/Info.plist` is copied into the app bundle by the Makefile.
