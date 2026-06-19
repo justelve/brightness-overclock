@@ -5,9 +5,13 @@
     <key>CFBundleIdentifier</key>
     <string>BrightnessOverclock</string>
     <key>CFBundleName</key>
-    <string>BrightnessOverclock</string>
+    <string>Brightness Overclock</string>
+    <key>CFBundleDisplayName</key>
+    <string>Brightness Overclock</string>
     <key>CFBundleExecutable</key>
     <string>BrightnessOverclock</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
