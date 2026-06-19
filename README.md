@@ -4,6 +4,8 @@ A macOS menu bar app for pushing the built-in Liquid Retina XDR display past nor
 
 It lets SDR content use the XDR range: roughly **1,000 nits → 1,600 nits**.
 
+_Note: this project is vibe-coded._
+
 ## Features
 
 - Menu bar toggle for brightness overclocking.
