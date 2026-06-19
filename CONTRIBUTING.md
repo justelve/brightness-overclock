@@ -24,10 +24,10 @@ Brightness-key support is handled separately:
 
 Battery policy is also handled separately:
 
-- `BatteryStatusReader` reads AC/battery state and percentage through IOKit power-source APIs.
+- `BatteryStatusReader` reads AC/battery state, percentage, and Low Power Mode through IOKit and `ProcessInfo` power APIs.
 - `BatteryBoostAuthorizer` is the pure policy layer for the three battery modes.
 - `BatteryBoostController` observes setting changes and power-source changes, then updates `BoostState`.
-- `BoostState` owns enforcement: blocked boost is turned off, menu/key attempts cannot re-enable it while blocked, and policy-disabled boosts are restored when the policy allows boost again.
+- `BoostState` owns enforcement: blocked boost is turned off, menu/key attempts cannot re-enable it while blocked, and policy-disabled boosts are restored when the policy allows boost again. Low Power Mode is treated as an always-on safety block because macOS display dimming can conflict with the EDR/gamma boost path.
 
 The app intentionally targets the built-in XDR display only. External displays and non-XDR panels are out of scope.
 

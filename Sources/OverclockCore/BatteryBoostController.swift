@@ -78,10 +78,20 @@ public enum BatteryStatusReader {
                 percentage = nil
             }
 
-            return BatteryStatus(powerSource: powerSource, batteryPresent: true, percentage: percentage)
+            return BatteryStatus(
+                powerSource: powerSource,
+                batteryPresent: true,
+                percentage: percentage,
+                lowPowerModeEnabled: ProcessInfo.processInfo.isLowPowerModeEnabled
+            )
         }
 
-        return BatteryStatus(powerSource: powerSource, batteryPresent: false, percentage: nil)
+        return BatteryStatus(
+            powerSource: powerSource,
+            batteryPresent: false,
+            percentage: nil,
+            lowPowerModeEnabled: ProcessInfo.processInfo.isLowPowerModeEnabled
+        )
     }
 }
 
@@ -127,6 +137,12 @@ public final class BatteryBoostController {
             name: NSWorkspace.didWakeNotification,
             object: nil
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(refreshFromNotification),
+            name: NSNotification.Name.NSProcessInfoPowerStateDidChange,
+            object: nil
+        )
 
         installPowerSourceNotification()
     }
@@ -140,6 +156,7 @@ public final class BatteryBoostController {
             self.powerSourceRunLoopSource = nil
         }
         NSWorkspace.shared.notificationCenter.removeObserver(self)
+        NotificationCenter.default.removeObserver(self)
     }
 
     public func refresh() {

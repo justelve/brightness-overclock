@@ -10,7 +10,7 @@ public enum BatteryBoostPolicy: String, CaseIterable, Identifiable {
     public var displayName: String {
         switch self {
         case .alwaysAllowOnBattery:
-            return "Always allow boost on battery"
+            return "Allow boost on battery"
         case .disableBelowPercentage:
             return "Turn off below threshold"
         case .neverAllowOnBattery:
@@ -29,11 +29,18 @@ public struct BatteryStatus: Equatable {
     public let powerSource: PowerSource
     public let batteryPresent: Bool
     public let percentage: Int?
+    public let lowPowerModeEnabled: Bool
 
-    public init(powerSource: PowerSource, batteryPresent: Bool, percentage: Int?) {
+    public init(
+        powerSource: PowerSource,
+        batteryPresent: Bool,
+        percentage: Int?,
+        lowPowerModeEnabled: Bool = false
+    ) {
         self.powerSource = powerSource
         self.batteryPresent = batteryPresent
         self.percentage = percentage
+        self.lowPowerModeEnabled = lowPowerModeEnabled
     }
 
     public var isOnBattery: Bool {
@@ -58,6 +65,10 @@ public enum BatteryBoostAuthorizer {
         thresholdPercentage: Int,
         status: BatteryStatus
     ) -> BatteryBoostDecision {
+        if status.lowPowerModeEnabled {
+            return .blocked("Boost is disabled in Low Power Mode.")
+        }
+
         guard status.isOnBattery else { return .allowed }
 
         switch policy {

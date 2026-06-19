@@ -81,11 +81,13 @@ Then grant permission in System Settings and relaunch the app if needed.
 
 Use the **Boost on battery** menu to choose:
 
-- Always allow boost on battery. This is the default, preserving the original behavior.
+- Allow boost on battery. This is the default, preserving the original behavior except when Low Power Mode is active.
 - Turn off boost below a chosen battery percentage. The default threshold is 30%, and the menu offers 10% increments from 10% to 100%.
 - Don’t allow boost while on battery.
 
 When boost is blocked by battery policy, the app turns boost off and prevents re-enabling it until the policy allows it again. If boost was on when the policy blocked it, it automatically restores that boost level when allowed again. The setting is persisted between launches.
+
+Low Power Mode always blocks boost because macOS can dim the display underneath the EDR/gamma boost path, which can make brightness behavior unstable.
 
 ### Launch at login
 

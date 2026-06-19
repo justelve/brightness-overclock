@@ -14,6 +14,24 @@ final class BatteryBoostPolicyTests: XCTestCase {
         XCTAssertTrue(decision.isAllowed)
     }
 
+    func testLowPowerModeBlocksEvenWhenBatteryBoostIsAlwaysAllowed() {
+        let status = BatteryStatus(
+            powerSource: .battery,
+            batteryPresent: true,
+            percentage: 80,
+            lowPowerModeEnabled: true
+        )
+
+        let decision = BatteryBoostAuthorizer.decision(
+            policy: .alwaysAllowOnBattery,
+            thresholdPercentage: 30,
+            status: status
+        )
+
+        XCTAssertFalse(decision.isAllowed)
+        XCTAssertEqual(decision.reason, "Boost is disabled in Low Power Mode.")
+    }
+
     func testNeverAllowPolicyBlocksBoostOnlyOnBattery() {
         let battery = BatteryStatus(powerSource: .battery, batteryPresent: true, percentage: 80)
         let ac = BatteryStatus(powerSource: .ac, batteryPresent: true, percentage: 80)
@@ -93,6 +111,42 @@ final class BatteryBoostPolicyTests: XCTestCase {
         XCTAssertFalse(state.isBoostAllowed)
 
         settings.policy = .alwaysAllowOnBattery
+        XCTAssertEqual(state.boostLevel, 1.4, accuracy: 1e-9)
+        XCTAssertTrue(state.isBoostAllowed)
+    }
+
+    func testControllerDisablesAndRestoresBoostForLowPowerMode() {
+        let suiteName = "BatteryBoostLowPowerControllerTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        let settings = BatteryBoostSettings(defaults: defaults)
+        let state = BoostState(defaults: defaults)
+        state.maxFactor = 1.6
+        state.boostLevel = 1.4
+        var lowPowerModeEnabled = true
+
+        let controller = BatteryBoostController(
+            state: state,
+            settings: settings,
+            statusProvider: {
+                BatteryStatus(
+                    powerSource: .battery,
+                    batteryPresent: true,
+                    percentage: 80,
+                    lowPowerModeEnabled: lowPowerModeEnabled
+                )
+            }
+        )
+        controller.start()
+        defer { controller.stop() }
+
+        XCTAssertEqual(state.boostLevel, 1.0, accuracy: 1e-9)
+        XCTAssertFalse(state.isBoostAllowed)
+        XCTAssertEqual(state.boostBlockReason, "Boost is disabled in Low Power Mode.")
+
+        lowPowerModeEnabled = false
+        controller.refresh()
+
         XCTAssertEqual(state.boostLevel, 1.4, accuracy: 1e-9)
         XCTAssertTrue(state.isBoostAllowed)
     }
