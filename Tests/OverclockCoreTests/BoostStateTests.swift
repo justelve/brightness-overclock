@@ -86,4 +86,47 @@ final class BoostStateTests: XCTestCase {
         state.toggleOn()
         XCTAssertEqual(state.boostLevel, levelAfterFirst, accuracy: 1e-9)
     }
+
+    func testBlockingBoostTurnsOffAndPreventsReenabling() {
+        let state = BoostState(defaults: defaults)
+        state.maxFactor = 1.6
+        state.boostLevel = 1.4
+
+        state.setBoostDecision(.blocked("Battery too low"))
+
+        XCTAssertEqual(state.boostLevel, 1.0, accuracy: 1e-9)
+        XCTAssertFalse(state.isBoostAllowed)
+        XCTAssertEqual(state.boostBlockReason, "Battery too low")
+
+        state.toggleOn()
+        XCTAssertEqual(state.boostLevel, 1.0, accuracy: 1e-9)
+
+        state.setBoostDecision(.allowed)
+        state.toggleOn()
+        XCTAssertEqual(state.boostLevel, 1.4, accuracy: 1e-9)
+    }
+
+    func testBoostBlockedByBatteryRestoresWhenAllowedAgain() {
+        let state = BoostState(defaults: defaults)
+        state.maxFactor = 1.6
+        state.boostLevel = 1.4
+
+        state.setBoostDecision(.blocked("Battery too low"))
+        state.setBoostDecision(.blocked("Battery too low")) // repeated battery notifications should not forget restore intent
+        state.setBoostDecision(.allowed)
+
+        XCTAssertEqual(state.boostLevel, 1.4, accuracy: 1e-9)
+        XCTAssertTrue(state.isBoostAllowed)
+        XCTAssertNil(state.boostBlockReason)
+    }
+
+    func testBatteryAllowDoesNotEnableBoostIfItWasAlreadyOff() {
+        let state = BoostState(defaults: defaults)
+        state.maxFactor = 1.6
+
+        state.setBoostDecision(.blocked("Battery too low"))
+        state.setBoostDecision(.allowed)
+
+        XCTAssertEqual(state.boostLevel, 1.0, accuracy: 1e-9)
+    }
 }

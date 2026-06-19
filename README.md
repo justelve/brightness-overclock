@@ -12,6 +12,7 @@ _Note: this project is vibe-coded._
 - Brightness-key support past native maximum brightness.
 - 8 boost steps through the XDR range.
 - Remembers your last boost level.
+- Configurable battery rules for allowing or disabling boost on battery power.
 - Launch-at-login support.
 
 For implementation details, see [Contributing](CONTRIBUTING.md).
@@ -71,6 +72,16 @@ Enable brightness keys…
 Then grant permission in System Settings and relaunch the app if needed.
 
 > The menu toggle works even if Accessibility permission is not granted.
+
+### Battery rules
+
+Use the **Boost on battery** menu to choose:
+
+- Always allow boost on battery. This is the default, preserving the original behavior.
+- Turn off boost below a chosen battery percentage. The default threshold is 30%, and the menu offers 10% increments from 10% to 100%.
+- Don’t allow boost while on battery.
+
+When boost is blocked by battery policy, the app turns boost off and prevents re-enabling it until the policy allows it again. If boost was on when the policy blocked it, it automatically restores that boost level when allowed again. The setting is persisted between launches.
 
 ### Launch at login
 

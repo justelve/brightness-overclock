@@ -6,9 +6,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let state = BoostState()
     private(set) lazy var engine = BoostEngine(state: state)
     let interceptor = BrightnessKeyInterceptor()
+    let batterySettings = BatteryBoostSettings()
+    private var batteryController: BatteryBoostController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
+        batteryController = BatteryBoostController(state: state, settings: batterySettings)
+        batteryController?.start()
         engine.applyPersisted()
         registerLoginItemOnFirstLaunch()
         interceptor.boostLevelProvider = { [weak self] in self?.state.boostLevel ?? 1.0 }
@@ -21,6 +25,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         engine.shutdown()
+        batteryController?.stop()
     }
 
     private func registerLoginItemOnFirstLaunch() {
@@ -37,9 +42,11 @@ struct BrightnessOverclockApp: App {
 
     var body: some Scene {
         MenuBarExtra {
-            MenuView(state: appDelegate.state, onEnableKeys: {
-                appDelegate.interceptor.start()
-            })
+            MenuView(
+                state: appDelegate.state,
+                batterySettings: appDelegate.batterySettings,
+                onEnableKeys: { appDelegate.interceptor.start() }
+            )
         } label: {
             MenuBarIcon(state: appDelegate.state)
         }
@@ -62,6 +69,7 @@ struct MenuBarIcon: View {
 
 struct MenuView: View {
     @ObservedObject var state: BoostState
+    @ObservedObject var batterySettings: BatteryBoostSettings
     let onEnableKeys: () -> Void
     @State private var accessibilityGranted =
         BrightnessKeyInterceptor.hasAccessibilityPermission(prompt: false)
@@ -71,9 +79,13 @@ struct MenuView: View {
             get: { state.isBoosted },
             set: { $0 ? state.toggleOn() : state.toggleOff() }
         ))
+        .disabled(!state.isBoostAllowed)
         Text(state.isBoosted
              ? "≈ \(BoostMath.approximateNits(level: state.boostLevel)) nits"
              : "Normal (≤ \(Int(BoostMath.sdrReferenceNits)) nits)")
+        if let reason = state.boostBlockReason {
+            Text(reason)
+        }
         if !accessibilityGranted {
             Divider()
             Button("Enable brightness keys…") {
@@ -82,10 +94,39 @@ struct MenuView: View {
             }
         }
         Divider()
+        BatterySettingsView(settings: batterySettings)
         LaunchAtLoginToggle()
         Divider()
         Button("Quit") { NSApp.terminate(nil) }
     }
+}
+
+struct BatterySettingsView: View {
+    @ObservedObject var settings: BatteryBoostSettings
+
+    var body: some View {
+        Text("Battery")
+        Picker("Boost on battery", selection: $settings.policy) {
+            ForEach(BatteryBoostPolicy.allCases) { policy in
+                Text(policy.displayName).tag(policy)
+            }
+        }
+        if settings.policy == .disableBelowPercentage {
+            Picker(
+                "Turn off below",
+                selection: Binding(
+                    get: { settings.minimumBatteryPercentage },
+                    set: { settings.setMinimumBatteryPercentage($0) }
+                )
+            ) {
+                ForEach(BatteryBoostSettings.allowedMinimumBatteryPercentages, id: \.self) { percentage in
+                    Text("\(percentage)%").tag(percentage)
+                }
+            }
+        }
+        Divider()
+    }
+
 }
 
 struct LaunchAtLoginToggle: View {

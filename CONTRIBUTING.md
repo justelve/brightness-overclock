@@ -22,6 +22,13 @@ Brightness-key support is handled separately:
 - Brightness Up is intercepted only once native brightness is effectively maxed.
 - Brightness Down walks down the boost range before passing control back to macOS.
 
+Battery policy is also handled separately:
+
+- `BatteryStatusReader` reads AC/battery state and percentage through IOKit power-source APIs.
+- `BatteryBoostAuthorizer` is the pure policy layer for the three battery modes.
+- `BatteryBoostController` observes setting changes and power-source changes, then updates `BoostState`.
+- `BoostState` owns enforcement: blocked boost is turned off, menu/key attempts cannot re-enable it while blocked, and policy-disabled boosts are restored when the policy allows boost again.
+
 The app intentionally targets the built-in XDR display only. External displays and non-XDR panels are out of scope.
 
 ## Development
@@ -46,14 +53,14 @@ The app intentionally targets the built-in XDR display only. External displays a
 
 ### Project layout
 
-- `Sources/BrightnessOverclock/` contains the SwiftUI menu bar app and launch-at-login UI.
-- `Sources/OverclockCore/` contains display boosting, brightness-key interception, and pure boost state/math.
-- `Tests/OverclockCoreTests/` covers the pure logic and the `BoostEngine` lifecycle through test seams.
+- `Sources/BrightnessOverclock/` contains the SwiftUI menu bar app, launch-at-login UI, and battery settings menu.
+- `Sources/OverclockCore/` contains display boosting, brightness-key interception, battery policy, and pure boost state/math.
+- `Tests/OverclockCoreTests/` covers the pure logic, battery policy, and the `BoostEngine` lifecycle through test seams.
 - `Resources/Info.plist` is copied into the app bundle by the Makefile.
 
 ### Testing notes
 
-Prefer keeping platform-heavy behavior behind small seams and testing the lifecycle from `BoostState` through `BoostEngine`. Pure logic such as boost math, key decisions, and key event pairing should stay deterministic and unit-tested.
+Prefer keeping platform-heavy behavior behind small seams and testing the lifecycle from `BoostState` through controllers/engines. Pure logic such as boost math, battery authorization, key decisions, and key event pairing should stay deterministic and unit-tested.
 
 Run the full suite before installing:
 

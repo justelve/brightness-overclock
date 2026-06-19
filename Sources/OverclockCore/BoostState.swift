@@ -19,6 +19,8 @@ public final class BoostState: ObservableObject {
         }
     }
 
+    @Published public private(set) var boostBlockReason: String?
+
     /// Last boost level > 1.0 the user chose; 0 means "never boosted yet".
     private(set) var rememberedLevel: Double {
         didSet { defaults.set(rememberedLevel, forKey: Keys.rememberedLevel) }
@@ -31,8 +33,10 @@ public final class BoostState: ObservableObject {
     }
 
     public var isBoosted: Bool { boostLevel > 1.0 }
+    public var isBoostAllowed: Bool { boostBlockReason == nil }
 
     private let defaults: UserDefaults
+    private var restoreBoostWhenAllowed = false
 
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -42,8 +46,26 @@ public final class BoostState: ObservableObject {
         self.rememberedLevel = storedRemembered > 1.0 ? storedRemembered : 0
     }
 
+    public func setBoostDecision(_ decision: BatteryBoostDecision) {
+        if decision.isAllowed {
+            boostBlockReason = nil
+            if restoreBoostWhenAllowed {
+                restoreBoostWhenAllowed = false
+                toggleOn()
+            }
+            return
+        }
+
+        if isBoostAllowed && isBoosted {
+            restoreBoostWhenAllowed = true
+        }
+        boostBlockReason = decision.reason
+        toggleOff()
+    }
+
     /// Menu toggle ON: restore remembered level (first use: max headroom).
     public func toggleOn() {
+        guard isBoostAllowed else { return }
         boostLevel = rememberedLevel > 1.0 ? min(rememberedLevel, maxFactor) : maxFactor
     }
 
@@ -53,6 +75,7 @@ public final class BoostState: ObservableObject {
     }
 
     public func stepUp() {
+        guard isBoostAllowed else { return }
         boostLevel = BoostMath.stepUp(from: boostLevel, maxFactor: maxFactor)
     }
 
