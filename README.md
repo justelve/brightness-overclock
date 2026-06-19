@@ -1,4 +1,8 @@
-# Brightness Overclock
+<p align="center">
+  <img src="Resources/AppIcon.png" alt="Brightness Overclock icon" width="128" height="128">
+</p>
+
+<h1 align="center">Brightness Overclock</h1>
 
 A macOS menu bar app for pushing the built-in Liquid Retina XDR display past normal SDR brightness.
 
